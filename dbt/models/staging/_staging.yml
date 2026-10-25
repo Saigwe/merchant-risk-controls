@@ -1,0 +1,36 @@
+version: 2
+models:
+- name: stg_bronze__merchants
+  columns:
+  - name: merchant_id
+    data_tests:
+    - unique
+    - not_null
+- name: stg_bronze__risk_scores
+  data_tests:
+  - unique_combination:
+      arguments:
+        columns:
+        - merchant_id
+        - score_month
+  columns:
+  - name: merchant_id
+    data_tests:
+    - not_null
+    - relationships:
+        arguments:
+          to: ref('stg_bronze__merchants')
+          field: merchant_id
+- name: stg_bronze__overrides
+  columns:
+  - name: override_id
+    data_tests:
+    - unique
+    - not_null
+  - name: merchant_id
+    data_tests:
+    - not_null
+    - relationships:
+        arguments:
+          to: ref('stg_bronze__merchants')
+          field: merchant_id

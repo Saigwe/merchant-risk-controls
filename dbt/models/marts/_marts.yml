@@ -1,0 +1,17 @@
+version: 2
+models:
+  - name: fct_merchant_risk_rating
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [merchant_id, score_month]
+    columns:
+      - name: final_rating
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [low, medium, high]
+  - name: rpt_new_high_risk_by_month
+    columns:
+      - name: score_month
+        data_tests: [unique, not_null]

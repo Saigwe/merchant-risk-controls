@@ -1,0 +1,8 @@
+# Kept in-repo so CI and reviewers can run it. Secrets come from environment variables only.
+merchant_risk_controls:
+  target: duckdb
+  outputs:
+    duckdb:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', '../warehouse/merchant_risk_controls.duckdb') }}"
+      threads: 4
