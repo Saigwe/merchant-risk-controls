@@ -1,17 +1,120 @@
 version: 2
+
 models:
-  - name: fct_merchant_risk_rating
+  - name: fct_rule_hits
+    description: One row per merchant, month and rule that fired.
     data_tests:
       - unique_combination:
           arguments:
-            columns: [merchant_id, score_month]
+            columns: [merchant_id, period_month, rule_id]
+
+  - name: fct_merchant_risk_score
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [merchant_id, period_month]
     columns:
-      - name: final_rating
+      - name: model_rating
         data_tests:
           - accepted_values:
               arguments:
                 values: [low, medium, high]
-  - name: rpt_new_high_risk_by_month
+
+  - name: fct_merchant_rating
+    description: Model rating, approved override and final rating per merchant and month.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [merchant_id, period_month]
     columns:
-      - name: score_month
+      - name: final_rating
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [low, medium, high]
+
+  - name: dim_merchant_rating_history
+    description: Type-2 history of final ratings (one row per unbroken run of months at a rating).
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [merchant_id, valid_from_month]
+
+  - name: rpt_new_high_risk
+    columns:
+      - name: period_month
         data_tests: [unique, not_null]
+
+  - name: rpt_control_violations
+    description: Every override event that breaks a workflow control, re-checked in SQL.
+
+  - name: rpt_override_activity
+    columns:
+      - name: period_month
+        data_tests: [unique, not_null]
+
+  - name: rpt_current_ratings
+    columns:
+      - name: merchant_id
+        data_tests: [unique, not_null]
+
+unit_tests:
+  - name: score_sums_rule_points_caps_at_100_and_lists_rules_by_weight
+    model: fct_merchant_risk_score
+    given:
+      - input: ref('stg_risk__monthly_metrics')
+        rows:
+          - {merchant_id: M1, period_month: 2025-03-01}
+          - {merchant_id: M2, period_month: 2025-03-01}
+          - {merchant_id: M3, period_month: 2025-03-01}
+      - input: ref('fct_rule_hits')
+        rows:
+          - {merchant_id: M1, period_month: 2025-03-01, rule_id: R01, points: 40}
+          - {merchant_id: M1, period_month: 2025-03-01, rule_id: R07, points: 20}
+          - {merchant_id: M2, period_month: 2025-03-01, rule_id: R03, points: 15}
+          - {merchant_id: M2, period_month: 2025-03-01, rule_id: R05, points: 10}
+          - {merchant_id: M3, period_month: 2025-03-01, rule_id: R01, points: 40}
+          - {merchant_id: M3, period_month: 2025-03-01, rule_id: R02, points: 40}
+          - {merchant_id: M3, period_month: 2025-03-01, rule_id: R07, points: 40}
+    expect:
+      rows:
+        - {merchant_id: M1, risk_score: 60, model_rating: high, rules_fired: "R01, R07"}
+        - {merchant_id: M2, risk_score: 25, model_rating: medium, rules_fired: "R03, R05"}
+        - {merchant_id: M3, risk_score: 100, model_rating: high, rules_fired: "R01, R02, R07"}
+
+  - name: new_high_risk_counts_only_merchants_not_high_the_month_before
+    model: rpt_new_high_risk
+    description: >
+      M1 high in Jan and Feb (continuing in Feb). M2 medium in Jan, high in Feb (new). M3 onboarded in Feb
+      as high (new, newly onboarded). M4 high in Jan, gap, high in Mar (new in Mar: not high in Feb).
+    given:
+      - input: ref('fct_merchant_rating')
+        rows:
+          - {merchant_id: M1, period_month: 2025-01-01, final_rating: high}
+          - {merchant_id: M1, period_month: 2025-02-01, final_rating: high}
+          - {merchant_id: M2, period_month: 2025-01-01, final_rating: medium}
+          - {merchant_id: M2, period_month: 2025-02-01, final_rating: high}
+          - {merchant_id: M3, period_month: 2025-02-01, final_rating: high}
+          - {merchant_id: M4, period_month: 2025-01-01, final_rating: high}
+          - {merchant_id: M4, period_month: 2025-03-01, final_rating: high}
+    expect:
+      rows:
+        - {period_month: 2025-01-01, total_high: 2, continuing_high: 0, new_high: 2, new_high_newly_onboarded: 2}
+        - {period_month: 2025-02-01, total_high: 3, continuing_high: 1, new_high: 2, new_high_newly_onboarded: 1}
+        - {period_month: 2025-03-01, total_high: 1, continuing_high: 0, new_high: 1, new_high_newly_onboarded: 0}
+
+  - name: rating_history_splits_into_islands_of_consecutive_months
+    model: dim_merchant_rating_history
+    given:
+      - input: ref('fct_merchant_rating')
+        rows:
+          - {merchant_id: M1, period_month: 2025-01-01, final_rating: low}
+          - {merchant_id: M1, period_month: 2025-02-01, final_rating: low}
+          - {merchant_id: M1, period_month: 2025-03-01, final_rating: high}
+          - {merchant_id: M1, period_month: 2025-04-01, final_rating: low}
+    expect:
+      rows:
+        - {merchant_id: M1, final_rating: low, valid_from_month: 2025-01-01, valid_to_month: 2025-02-01, months: 2, is_current: false}
+        - {merchant_id: M1, final_rating: high, valid_from_month: 2025-03-01, valid_to_month: 2025-03-01, months: 1, is_current: false}
+        - {merchant_id: M1, final_rating: low, valid_from_month: 2025-04-01, valid_to_month: 2025-04-01, months: 1, is_current: true}

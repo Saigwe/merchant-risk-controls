@@ -1,26 +1,35 @@
 name: merchant_risk_controls
-version: 0.1.0
+version: 0.2.0
 config-version: 2
 profile: merchant_risk_controls
-model-paths:
-- models
-macro-paths:
-- macros
-test-paths:
-- tests
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+snapshot-paths: ["snapshots"]
 target-path: target
-clean-targets:
-- target
-- dbt_packages
+clean-targets: ["target", "dbt_packages"]
+
 vars:
-  high_risk_threshold: 70
-  medium_risk_threshold: 40
-  max_new_high_risk_ratio: 3
+  high_risk_threshold: 50      # score >= 50 -> high
+  medium_risk_threshold: 25    # score >= 25 -> medium
+  max_new_high_risk_ratio: 3   # newly high-risk merchants may not jump more than 3x month on month
+  min_reason_length: 10        # same rule as app/workflow.py
+  is_fixture: false            # true only in CI: switches to the planted-violations answer-key test
+
 models:
   merchant_risk_controls:
     staging:
       +schema: silver
       +materialized: view
+    intermediate:
+      +schema: silver
+      +materialized: table
     marts:
       +schema: gold
       +materialized: table
+
+seeds:
+  merchant_risk_controls:
+    +schema: ref

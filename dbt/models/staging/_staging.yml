@@ -1,36 +1,46 @@
 version: 2
+
 models:
-- name: stg_bronze__merchants
-  columns:
-  - name: merchant_id
+  - name: stg_risk__merchants
+    columns:
+      - name: merchant_id
+        data_tests: [unique, not_null]
+  - name: stg_risk__monthly_metrics
     data_tests:
-    - unique
-    - not_null
-- name: stg_bronze__risk_scores
-  data_tests:
-  - unique_combination:
-      arguments:
-        columns:
-        - merchant_id
-        - score_month
-  columns:
-  - name: merchant_id
-    data_tests:
-    - not_null
-    - relationships:
-        arguments:
-          to: ref('stg_bronze__merchants')
-          field: merchant_id
-- name: stg_bronze__overrides
-  columns:
-  - name: override_id
-    data_tests:
-    - unique
-    - not_null
-  - name: merchant_id
-    data_tests:
-    - not_null
-    - relationships:
-        arguments:
-          to: ref('stg_bronze__merchants')
-          field: merchant_id
+      - unique_combination:
+          arguments:
+            columns: [merchant_id, period_month]
+    columns:
+      - name: merchant_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_risk__merchants')
+                field: merchant_id
+  - name: stg_risk__users
+    columns:
+      - name: user_id
+        data_tests: [unique, not_null]
+      - name: role
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [analyst, checker]
+  - name: stg_risk__period_locks
+    columns:
+      - name: period_month
+        data_tests: [unique, not_null]
+  - name: stg_risk__override_events
+    columns:
+      - name: event_id
+        data_tests: [unique, not_null]
+      - name: action
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [propose, approve, reject, withdraw]
+      - name: proposed_rating
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [low, medium, high]

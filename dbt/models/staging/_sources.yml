@@ -1,8 +1,16 @@
 version: 2
+
 sources:
-- name: bronze
-  description: Raw tables, loaded by the fixture generator (CI) or the real-data loaders.
-  tables:
-  - name: merchants
-  - name: risk_scores
-  - name: overrides
+  - name: bronze
+    description: Synthetic merchant data (ingestion/generate_risk_data.py) and the app's audit log.
+    tables:
+      - name: merchants
+      - name: merchant_monthly_metrics
+      - name: users
+        description: App users and their role (analyst = maker, checker = approver).
+      - name: period_locks
+        description: When each month was locked. No override event is valid at or after this time.
+      - name: override_events
+        description: Append-only audit log written by the approval app. Never updated or deleted.
+      - name: fixture_planted_violations
+        description: CI fixture only. Events written around the app's rules, as an answer key.

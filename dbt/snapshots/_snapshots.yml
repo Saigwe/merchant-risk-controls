@@ -1,0 +1,9 @@
+snapshots:
+  - name: snap_current_ratings
+    description: SCD2 history of each merchant's open-month rating, captured on every build.
+    relation: ref('rpt_current_ratings')
+    config:
+      schema: snapshots
+      unique_key: merchant_id
+      strategy: check
+      check_cols: [final_rating, rating_source, override_id]

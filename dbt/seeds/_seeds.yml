@@ -1,0 +1,22 @@
+version: 2
+
+seeds:
+  - name: risk_rules
+    description: >
+      The scoring rules as data. Change a threshold or weight here and rebuild; no SQL changes.
+      Thresholds are illustrative, chosen for this synthetic data, not any card scheme's actual programme.
+    config:
+      column_types: {rule_id: varchar, signal: varchar, operator: varchar, threshold: double, points: integer, description: varchar}
+    columns:
+      - name: rule_id
+        data_tests: [unique, not_null]
+      - name: operator
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [">=", "<"]
+      - name: signal
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [chargeback_rate, refund_rate, negative_balance_days, tenure_days, ownership_changed_3m, kyc_expired, gmv_growth]

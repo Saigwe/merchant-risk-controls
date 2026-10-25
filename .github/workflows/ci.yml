@@ -15,5 +15,5 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
-      - name: Fixture pipeline (synthetic fixture -> dbt build with tests)
+      - name: Workflow tests (pytest) -> fixture with planted violations -> dbt build with answer key
         run: make fixture-all

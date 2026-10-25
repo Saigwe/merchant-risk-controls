@@ -1,0 +1,9 @@
+rule_id,signal,operator,threshold,points,description
+R01,chargeback_rate,>=,0.009,40,Chargeback ratio at or above 0.9% of orders
+R02,chargeback_rate,>=,0.0065,15,Chargeback ratio at or above 0.65% (early warning)
+R03,refund_rate,>=,0.10,15,Refunds on 10% or more of orders
+R04,negative_balance_days,>=,5,15,Negative balance on 5 or more days in the month
+R05,tenure_days,<,90,10,Onboarded less than 90 days before month-end
+R06,ownership_changed_3m,>=,1,15,Ownership changed in the last 3 months
+R07,kyc_expired,>=,1,20,KYC documents expired
+R08,gmv_growth,>=,3.0,20,GMV up 300% or more on the prior month (velocity spike)
