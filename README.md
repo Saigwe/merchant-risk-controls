@@ -149,6 +149,7 @@ After approving overrides in the app, run `make dbt` to see them in the ratings 
 - [ ] 2-minute video of the approval flow
 - [ ] Back-test: precision of high ratings against a later loss or termination label
 - [ ] Postgres as the app's store, with row-level permissions per role
+- [ ] 3-minute Loom walkthrough ([script ready](docs/walkthrough.md))
 
 ## Interview topics this project prepares
 - SCD Type 2: dbt snapshots and gaps-and-islands history
