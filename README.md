@@ -20,6 +20,13 @@ Based on work I did at a US food-delivery company, where I replaced a spreadshee
 | **Why it matters** | Every rating can be explained (which rules fired) and every change traced (who proposed, who approved, why, when). A broken report fails the build instead of reaching the risk committee. |
 | **Proof** | 54 dbt checks and 20 pytest tests. An answer-key test plants five kinds of control breach and requires dbt to report exactly those. The real 2,994-event log has 0 violations. See [Numbers](#numbers). |
 
+## Charts
+Rendered from this repo's own results by `charts/make_charts.py` (`make charts`); CI re-renders them on every push.
+
+![Rule hits by scoring rule](docs/charts/rule_hits.png)
+
+![Override decisions by month](docs/charts/override_decisions.png)
+
 ## Architecture
 ```mermaid
 flowchart LR

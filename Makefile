@@ -3,7 +3,7 @@ DB ?= warehouse/risk.duckdb
 FIXTURE_DB ?= warehouse/fixture.duckdb
 DBT = cd dbt && DUCKDB_PATH=../$(DB) dbt
 
-.PHONY: all fixture-all bronze bronze-fixture dbt dbt-fixture pytest app clean
+.PHONY: all fixture-all bronze bronze-fixture dbt dbt-fixture pytest app clean charts
 
 all: pytest bronze dbt                            ## 20k merchants, Jan-Dec 2025
 fixture-all: pytest                               ## 600 merchants + planted violations (CI)
@@ -30,3 +30,6 @@ app:
 
 clean:
 	rm -rf warehouse dbt/target dbt/logs
+
+charts:                                            ## README charts -> docs/charts
+	$(PY) charts/make_charts.py

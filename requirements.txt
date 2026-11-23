@@ -5,3 +5,4 @@ pandas>=2.2
 numpy>=1.26
 pytest>=8.0
 # App (optional): pip install -r requirements-app.txt
+matplotlib>=3.8
